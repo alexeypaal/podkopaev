@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    // Сборка Docker image
+                    sh 'docker build -t myapp .'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Запуск тестов
+                    sh 'npm install'
+                    sh 'npm test'
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // Вход в Docker Hub
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+
+                    // Загрузка Docker image в Docker Hub
+                    sh 'docker tag myapp yourusername/myapp:latest'
+                    sh 'docker push yourusername/myapp:latest'
+                }
+            }
+        }
+    }
+    environment {
+        DOCKER_USERNAME = credentials('docker-hub-username') // Добавьте учетные данные в Jenkins
+        DOCKER_PASSWORD = credentials('docker-hub-password') // Добавьте учетные данные в Jenkins
+    }
+}
+
